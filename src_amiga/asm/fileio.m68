@@ -3,6 +3,9 @@
 fileio_implementation: equ 1
     include "common.def"
     xref dos_base
+    ifne blit_ok
+    xref wait_clear
+    endc
     xdef file_open,file_create,file_close,file_read,file_write,file_first,file_next
     xdef console_write,active_files,directory_lock
     xdef file_init,file_shutdown,commander_open,commander_create
@@ -92,10 +95,16 @@ commander_name:
     rts
 
 file_open:
+    ifne blit_ok
+    jsr wait_clear ; the blitter is never held across a disk access
+    endc
     movem.l d1-d7/a0-a6,-(sp)
     move.l #1005,d2
     bra open_file
 file_create:
+    ifne blit_ok
+    jsr wait_clear ; the blitter is never held across a disk access
+    endc
     movem.l d1-d7/a0-a6,-(sp)
     move.l #1006,d2
 open_file:
@@ -120,6 +129,9 @@ missing_file:
     moveq #-33,d0              ; game message: file could not be opened
     bra io_done
 file_close:
+    ifne blit_ok
+    jsr wait_clear ; the blitter is never held across a disk access
+    endc
     movem.l d1-d7/a0-a6,-(sp)
     lea active_files,a0
     moveq #7,d7
@@ -138,6 +150,9 @@ file_close:
     moveq #0,d0
     bra io_done
 file_read:
+    ifne blit_ok
+    jsr wait_clear ; the blitter is never held across a disk access
+    endc
     movem.l d1-d7/a0-a6,-(sp)
     move.l dos_base,a6
     jsr -42(a6)
@@ -145,6 +160,9 @@ file_read:
     bmi io_error
     bra io_done
 file_write:
+    ifne blit_ok
+    jsr wait_clear ; the blitter is never held across a disk access
+    endc
     movem.l d1-d7/a0-a6,-(sp)
     move.l dos_base,a6
     jsr -48(a6)
